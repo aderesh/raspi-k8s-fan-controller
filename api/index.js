@@ -4,7 +4,7 @@ const pwm = require('raspi-soft-pwm');
 
 var app = express();
 
-let port = process.env.NODE_PORT || 3001; // TODO: change to 80
+let port = process.env.NODE_PORT || 36637;
 let interval_ms = process.env.INTERVAL_SEC || 1000;
 let expiry_ms = process.env.EXPIRY_SEC || 5 * 1000;
 let low_temp_C = process.env.LOW_TEMP_C || 60;
