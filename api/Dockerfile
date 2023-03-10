@@ -1,5 +1,5 @@
 FROM zinen2/alpine-pigpiod
-USER root
+#USER root
 WORKDIR /app
 COPY api/ .
 #RUN apt-get install -y libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if1 libpigpiod-if2-1 pigpio pigpio-tools pigpiod
