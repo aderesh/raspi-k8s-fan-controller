@@ -6,4 +6,4 @@ RUN apk update libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if1 libpigp
 RUN apk add
 RUN yarn install --production
 CMD ["node", "index.js"]
-EXPOSE 3000
+EXPOSE 36637
