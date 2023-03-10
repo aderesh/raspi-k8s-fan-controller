@@ -8,7 +8,8 @@
   },
   "author": "",
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "raspi-soft-pwm": "^6.0.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.21"

@@ -1,4 +1,6 @@
 var express = require("express");
+const raspi = require('raspi');
+const pwm = require('raspi-soft-pwm');
 
 var app = express();
 
@@ -8,6 +10,7 @@ let expiry_ms = process.env.EXPIRY_SEC || 5 * 1000;
 let low_temp_C = process.env.LOW_TEMP_C || 60;
 let high_temp_C = process.env.HIGH_TEMP_C || 78;
 let default_temp_C = process.env.DEFAULT_TEMP_C || high_temp_C;
+let gpio = process.env.GPIO || "GPIO18";
 
 const map = {
 }
@@ -35,6 +38,8 @@ app.get("/node/:node/temp/:temp", function (req, res) {
 
   res.status(200).send(``);
 });
+
+let led;
 
 setInterval(() => {
   const now = new Date();
@@ -66,10 +71,16 @@ setInterval(() => {
 
   pwm = Math.max(Math.min(1, pwm), 0);
 
+  led.write(pwm);
+
   console.log(`Fan pwm: ${pwm}. Max: ${maxNode}(${max}C). Records: ${JSON.stringify(map)}`);
 
-}, interval_ms)
+}, interval_ms);
 
-var server = app.listen(port, function () {
-  console.log("app running on port.", server.address().port);
+raspi.init(() => {
+  led = new pwm.SoftPWM(gpio);
+
+  var server = app.listen(port, function () {
+    console.log("app running on port.", server.address().port);
+  });
 });
