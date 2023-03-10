@@ -78,6 +78,7 @@ setInterval(() => {
 }, interval_ms);
 
 raspi.init(() => {
+  console.log("Raspi initialized for port: " + gpio);
   led = new pwm.SoftPWM(gpio);
 
   var server = app.listen(port, function () {
