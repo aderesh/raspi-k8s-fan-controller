@@ -1,4 +1,6 @@
 var express = require("express");
+
+const pigpio = require('pigpio');
 const Gpio = require('pigpio').Gpio;
 
 
@@ -11,7 +13,7 @@ let high_temp_C = process.env.HIGH_TEMP_C || 78;
 let default_temp_C = process.env.DEFAULT_TEMP_C || high_temp_C;
 let gpio = parseInt(process.env.GPIO) || 18;
 
-const led = new Gpio(gpio, {mode: Gpio.OUTPUT});
+const led = new Gpio(gpio, { mode: Gpio.OUTPUT });
 
 const map = {
 }
@@ -40,7 +42,7 @@ app.get("/node/:node/temp/:temp", function (req, res) {
   res.status(200).send(``);
 });
 
-setInterval(() => {
+const interval = setInterval(() => {
   const now = new Date();
   for (let n in map) {
     if (map[n].expire.getTime() < now.getTime()) {
@@ -84,3 +86,15 @@ setInterval(() => {
 var server = app.listen(port, function () {
   console.log("app running on port.", server.address().port);
 });
+
+process.on('SIGHUP', shutdown);
+process.on('SIGINT', shutdown);
+process.on('SIGCONT', shutdown);
+process.on('SIGTERM', shutdown);
+
+function shutdown() {
+  console.log('shutdown request, terminating');
+  pigpio.terminate();
+  clearInterval(interval);
+  process.exit(0);
+}
