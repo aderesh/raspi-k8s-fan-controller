@@ -6,6 +6,7 @@
 - `LOW_TEMP_C` - lowest temp in C when fan turns on. Default: 60
 - `HIGH_TEMP_C` - temp in C when fan goes 100%. Default: 78
 - `DEFAULT_TEMP_C` - default temp in C when no node reported their temp. Default: same as `HIGH_TEMP_C`
+- `FREQUENCY_HZ` - PWM's frequency. It seems the max frequency that can be set is 8000Hz. Fans' PWM standard is 25kHz(seems like). Default: 8000Hz(max)
 
 # Development
 ## Install `Remote - SSH`

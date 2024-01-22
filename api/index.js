@@ -12,8 +12,13 @@ let low_temp_C = process.env.LOW_TEMP_C || 60;
 let high_temp_C = process.env.HIGH_TEMP_C || 78;
 let default_temp_C = process.env.DEFAULT_TEMP_C || high_temp_C;
 let gpio = parseInt(process.env.GPIO) || 18;
+let frequency_hz = parseInt(process.env.FREQUENCY_HZ) || 8000; 
 
-const led = new Gpio(gpio, { mode: Gpio.OUTPUT });
+const pwmPin = new Gpio(gpio, { mode: Gpio.OUTPUT });
+
+pwmPin.pwmFrequency(frequency_hz);
+
+console.log(`GPIO: ${gpio}, Frequency: ${pwmPin.getPwmFrequency()}(Desired: ${frequency_hz});`)
 
 const map = {
 }
@@ -79,7 +84,7 @@ const interval = setInterval(() => {
 
   console.log(`Fan pwm: ${pwm}. Max: ${maxNode}(${max}C). Records: ${JSON.stringify(map)}`);
 
-  led.pwmWrite(pwm);
+  pwmPin.pwmWrite(pwm);
 
 }, interval_ms);
 
