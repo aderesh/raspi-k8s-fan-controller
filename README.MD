@@ -15,3 +15,5 @@ Execute the following before `npm install`
 ```shell
 sudo apt-get install -y libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if1 libpigpiod-if2-1 pigpio pigpio-tools pigpiod
 ```
+
+Shematic, explanation - https://raspberrypi.stackexchange.com/a/142380/145426
