@@ -24,7 +24,7 @@ Shematic, explanation - https://raspberrypi.stackexchange.com/a/142380/145426
 ## Manual script
 Pre-reqs: see 'Development'
 Recommended to use with LED + 330 OM resistor instead of fan.
-Note: frequency is `2500` - it's important. Check the stackexchange explanation (https://raspberrypi.stackexchange.com/a/142380/145426)
+Note: frequency is `2500` - it's important. Check the stackexchange explanation (https://raspberrypi.stackexchange.com/a/142380/145426). The pigpio npm library itself seems to work well with 8000. Also, when 2500 is set, pigpio uses 3000 for some reason. 
 ```python
 #!/usr/bin/env python3
 
