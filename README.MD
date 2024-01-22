@@ -16,4 +16,44 @@ Execute the following before `npm install`
 sudo apt-get install -y libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if1 libpigpiod-if2-1 pigpio pigpio-tools pigpiod
 ```
 
+# Schematic
 Shematic, explanation - https://raspberrypi.stackexchange.com/a/142380/145426
+
+# Troubleshooting scripts
+Recommended to use with LED + 330 OM resistor instead of fan.
+Note: frequency is `2500` - it's important. Check the stackexchange explanation (https://raspberrypi.stackexchange.com/a/142380/145426)
+```python
+#!/usr/bin/env python3
+
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setwarnings(False)
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(18, GPIO.OUT)
+
+p = GPIO.PWM(18, 2500)
+p.start(0)
+
+time.sleep(1)
+
+try:
+    while True:
+        p.ChangeDutyCycle(100)
+        print('100')
+        time.sleep(5)
+        p.ChangeDutyCycle(50)
+        print('50')
+        time.sleep(5)
+        p.ChangeDutyCycle(0)
+        print('0')
+        time.sleep(5)
+
+except KeyboardInterrupt:
+    pass
+
+p.ChangeDutyCycle(0)
+p.stop()
+GPIO.cleanup()
+```
