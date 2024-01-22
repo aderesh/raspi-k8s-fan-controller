@@ -20,6 +20,8 @@ sudo apt-get install -y libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if
 Shematic, explanation - https://raspberrypi.stackexchange.com/a/142380/145426
 
 # Troubleshooting scripts
+## Manual script
+Pre-reqs: see 'Development'
 Recommended to use with LED + 330 OM resistor instead of fan.
 Note: frequency is `2500` - it's important. Check the stackexchange explanation (https://raspberrypi.stackexchange.com/a/142380/145426)
 ```python
@@ -56,4 +58,10 @@ except KeyboardInterrupt:
 p.ChangeDutyCycle(0)
 p.stop()
 GPIO.cleanup()
+```
+
+## Request
+The following request would create a test node `Test` with temperature 90 C which would put fan for 100% duty cycle. 
+```
+http://192.168.0.50:31111/node/TEST/temp/90000
 ```
