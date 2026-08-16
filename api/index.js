@@ -23,9 +23,32 @@ console.log(`GPIO: ${gpio}, Frequency: ${pwmPin.getPwmFrequency()}(Desired: ${fr
 const map = {
 }
 
+let currentPwm = 0;
+
 if (high_temp_C < low_temp_C) {
   throw "high_temp_C_C cannot be lower than low_temp_C_C";
 }
+
+app.get("/", function (req, res) {
+  res.status(200).json({
+    fan: {
+      pwm: currentPwm,
+      percent: Math.round(currentPwm / 255 * 100)
+    },
+    config: {
+      gpio,
+      frequency_hz: pwmPin.getPwmFrequency(),
+      interval_ms,
+      expiry_ms,
+      low_temp_C,
+      high_temp_C,
+      default_temp_C
+    },
+    nodes: Object.fromEntries(
+      Object.entries(map).map(([k, v]) => [k, { temp_C: v.temp / 1000, expire: v.expire }])
+    )
+  });
+});
 
 app.get("/node/:node/temp/:temp", function (req, res) {
   let node = req.params.node;
@@ -84,6 +107,7 @@ const interval = setInterval(() => {
 
   console.log(`Fan pwm: ${pwm}. Max: ${maxNode}(${max}C). Records: ${JSON.stringify(map)}`);
 
+  currentPwm = pwm;
   pwmPin.pwmWrite(pwm);
 
 }, interval_ms);
