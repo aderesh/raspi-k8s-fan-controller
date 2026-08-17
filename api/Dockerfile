@@ -1,17 +1,23 @@
-FROM zinen2/alpine-pigpiod
-#USER root
+FROM node:24-bookworm-slim
+
+RUN apt-get update \
+		&& apt-get install -y --no-install-recommends ca-certificates curl gnupg \
+		&& curl -fsSL https://archive.raspberrypi.org/debian/raspberrypi.gpg.key \
+			| gpg --dearmor --output /usr/share/keyrings/raspberrypi-archive-keyring.gpg \
+		&& echo "deb [signed-by=/usr/share/keyrings/raspberrypi-archive-keyring.gpg] http://archive.raspberrypi.org/debian/ bookworm main" \
+			> /etc/apt/sources.list.d/raspberrypi.list \
+		&& apt-get update \
+		&& apt-get install -y --no-install-recommends raspi-gpio \
+		&& rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
-COPY api/ .
-#RUN apt-get install -y libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if1 libpigpiod-if2-1 pigpio pigpio-tools pigpiod
-RUN ls -la
-RUN apk update
-RUN apk add nodejs
-RUN apk add npm
-RUN apk add python3
-RUN apk add make
-RUN apk add g++
-# RUN apk add libpigpio-dev libpigpio1 libpigpiod-if-dev libpigpiod-if1 libpigpiod-if2-1 pigpio pigpio-tools pigpiod
-RUN npm install
-RUN ls -la
+ENV NODE_ENV=production
+
+COPY api/package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY api/ ./
+
+STOPSIGNAL SIGTERM
 CMD ["node", "index.js"]
 EXPOSE 36637

@@ -1,46 +1,88 @@
-name: Publish docker images
+name: Publish Container Image
+
 on:
-  push:
-    branches: [ master, main ]
-  pull_request:
-    branches: [ master, main ]
-  workflow_dispatch:    
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: Create the GitHub release and stable image tags (main only)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: aderesh/raspi-k8s-fan-controller
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      # -
-      #   name: Login to DockerHub
-      #   uses: docker/login-action@v1 
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # -
-      #   name: Build and push
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     push: true
-      #     tags: aderesh/raspi-fan-controller
-      #     file: api/Dockerfile
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate release branch
+        if: inputs.create_release && github.ref_name != 'main'
+        run: |
+          echo 'Stable releases must be run from main.' >&2
+          exit 1
+
+      - name: Read package version
+        id: package
+        run: echo "version=$(node -p "require('./api/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare image tags
+        id: tags
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          image="${REGISTRY}/${IMAGE_NAME}"
+          if [[ "${{ inputs.create_release }}" == 'true' ]]; then
+            {
+              echo 'tags<<EOF'
+              echo "${image}:${VERSION}"
+              echo "${image}:latest"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          else
+            branch=$(echo "$GITHUB_REF_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
+            short_sha="${GITHUB_SHA::7}"
+            {
+              echo 'tags<<EOF'
+              echo "${image}:${branch}"
+              echo "${image}:${VERSION}-${branch}-${short_sha}"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}        
-      - name: Build and push
-        uses: docker/build-push-action@v2
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish image
+        uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/arm64,linux/arm/v7,linux/arm/v6
-          # platforms: linux/arm64,linux/arm/v7
-          push: true
-          tags: aderesh/raspi-fan-controller
           file: api/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+
+      - name: Create GitHub release
+        if: inputs.create_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: gh release create "v${VERSION}" --target "$GITHUB_SHA" --generate-notes
