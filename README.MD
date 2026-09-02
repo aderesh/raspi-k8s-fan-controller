@@ -122,6 +122,18 @@ curl -i 'http://localhost:36637/node/TEST/temp/79000?expire_ms=10000'
 
 Invalid `temp` or `expire_ms` values return `400 Bad Request`.
 
+## Prometheus metrics
+`GET /metrics` exposes the current controller command in the Prometheus text exposition format. The existing `GET /fan` JSON endpoint remains unchanged.
+
+```shell
+curl http://localhost:36637/metrics
+```
+
+Configure Prometheus to scrape the controller service at `/metrics` on port `36637`. It exports these gauges:
+- `fan_controller_pwm` - current PWM command, from 0 to 255.
+- `fan_controller_pwm_percent` - current PWM command, from 0 to 100 percent.
+- `fan_controller_calculated_rpm` - RPM estimated from the PWM command and `FAN_RPM_MIN`/`FAN_RPM_MAX`; it is not tachometer feedback.
+
 # Schematic
 Schematic, explanation - https://raspberrypi.stackexchange.com/a/142380/145426
 
