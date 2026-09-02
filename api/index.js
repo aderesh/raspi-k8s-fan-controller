@@ -26,9 +26,14 @@ const pwmChipName = process.env.PWM_CHIP || 'pwmchip0';
 const pwmChannel = numberSetting('PWM_CHANNEL', 0, { integer: true, min: 0 });
 const frequencyHz = numberSetting('FREQUENCY_HZ', 25000, { min: 0, exclusiveMin: true });
 const gpioPin = numberSetting('GPIO_PIN', 18, { integer: true, min: 0 });
+const fanRpmMin = numberSetting('FAN_RPM_MIN', 0, { min: 0 });
+const fanRpmMax = numberSetting('FAN_RPM_MAX', 1000, { min: 0 });
 
 if (highTempC <= lowTempC) {
   throw new Error('HIGH_TEMP_C must be greater than LOW_TEMP_C');
+}
+if (fanRpmMax < fanRpmMin) {
+  throw new Error('FAN_RPM_MAX must be greater than or equal to FAN_RPM_MIN');
 }
 
 const periodNs = Math.round(1e9 / frequencyHz);
@@ -66,20 +71,37 @@ function enableFanPwmOutput() {
 
 let currentPwm = 0;
 
+function fanStatus() {
+  const percent = Math.round(currentPwm / 255 * 100);
+  const calculatedRpm = Math.round(fanRpmMin + (fanRpmMax - fanRpmMin) * currentPwm / 255);
+
+  return {
+    pwm: currentPwm,
+    percent,
+    calculated_rpm: calculatedRpm
+  };
+}
+
+app.get('/fan', (req, res) => {
+  res.status(200).json(fanStatus());
+});
+
 app.get('/', (req, res) => {
   res.status(200).json({
-    fan: {
-      pwm: currentPwm,
-      percent: Math.round(currentPwm / 255 * 100)
-    },
+    fan: fanStatus(),
     config: {
+      node_port: port,
       gpio: gpioPin,
+      pwm_chip: pwmChipName,
+      pwm_channel: pwmChannel,
       frequency_hz: frequencyHz,
       interval_ms: intervalMs,
       expiry_ms: expiryMs,
       low_temp_C: lowTempC,
       high_temp_C: highTempC,
-      default_temp_C: defaultTempC
+      default_temp_C: defaultTempC,
+      fan_rpm_min: fanRpmMin,
+      fan_rpm_max: fanRpmMax
     },
     nodes: Object.fromEntries(
       Object.entries(temperatureRecords).map(([node, record]) => [node, {

@@ -30,6 +30,8 @@ For production, run `node index.js` under a process supervisor rather than `node
 - `PWM_CHIP` - sysfs PWM chip name. Default: `pwmchip0` (see [Hardware Setup](#hardware-setup))
 - `PWM_CHANNEL` - sysfs PWM channel number. Default: `0` (see [Hardware Setup](#hardware-setup))
 - `GPIO_PIN` - GPIO the application switches to ALT5 for PWM output. Default: `18`; this setup uses GPIO18 for PWM0 channel 0.
+- `FAN_RPM_MIN` - fan RPM at 0% PWM, used to calculate reported RPM. Default: `0`.
+- `FAN_RPM_MAX` - fan RPM at 100% PWM, used to calculate reported RPM. Must be at least `FAN_RPM_MIN`. Default: `1000`.
 
 # Hardware Setup
 Add the following to `/boot/config.txt`:
