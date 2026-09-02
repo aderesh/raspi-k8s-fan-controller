@@ -86,6 +86,22 @@ app.get('/fan', (req, res) => {
   res.status(200).json(fanStatus());
 });
 
+app.get('/metrics', (req, res) => {
+  const { pwm, percent, calculated_rpm: calculatedRpm } = fanStatus();
+  res.type('text/plain; version=0.0.4; charset=utf-8').send([
+    '# HELP fan_controller_pwm Current PWM command on a scale from 0 to 255.',
+    '# TYPE fan_controller_pwm gauge',
+    `fan_controller_pwm ${pwm}`,
+    '# HELP fan_controller_pwm_percent Current PWM command as a percentage.',
+    '# TYPE fan_controller_pwm_percent gauge',
+    `fan_controller_pwm_percent ${percent}`,
+    '# HELP fan_controller_calculated_rpm Estimated fan speed based on PWM configuration.',
+    '# TYPE fan_controller_calculated_rpm gauge',
+    `fan_controller_calculated_rpm ${calculatedRpm}`,
+    ''
+  ].join('\n'));
+});
+
 app.get('/', (req, res) => {
   res.status(200).json({
     fan: fanStatus(),
